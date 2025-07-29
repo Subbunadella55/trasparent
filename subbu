@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Government Budget Tracker</title>
+  <script src="https://cdn.jsdelivr.net/npm/web3@1.8.2/dist/web3.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #f4f7fa;
+      color: #333;
+      padding: 20px;
+      margin: 0;
+    }
+
+    h2, h3 {
+      color: #2c3e50;
+    }
+
+    .section {
+      background-color: #ffffff;
+      border: 1px solid #dcdfe6;
+      padding: 20px;
+      margin-bottom: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+    }
+
+    label {
+      display: block;
+      margin-top: 15px;
+      font-weight: 600;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+
+    button {
+      margin-top: 15px;
+      padding: 10px 20px;
+      background-color: #3498db;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #2980b9;
+    }
+
+    pre {
+      background: #f0f0f0;
+      padding: 12px;
+      border-radius: 6px;
+      overflow-x: auto;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <h2>Government Budget Tracker (Blockchain)</h2>
+
+  <div class="section">
+    <h3>Register Department</h3>
+    <label>Department Address:</label>
+    <input type="text" id="regAddress">
+    <label>Name:</label>
+    <input type="text" id="regName">
+    <label>Initial Funds:</label>
+    <input type="number" id="regFunds">
+    <button onclick="registerDepartment()">Register</button>
+  </div>
+
+  <div class="section">
+    <h3>Allocate More Funds</h3>
+    <label>Department Address:</label>
+    <input type="text" id="allocAddress">
+    <label>Amount:</label>
+    <input type="number" id="allocAmount">
+    <button onclick="allocateFunds()">Allocate</button>
+  </div>
+
+  <div class="section">
+    <h3>Spend Funds (Department Only)</h3>
+    <label>Amount:</label>
+    <input type="number" id="spendAmount">
+    <label>Purpose:</label>
+    <input type="text" id="spendPurpose">
+    <button onclick="spendFunds()">Spend</button>
+  </div>
+
+  <div class="section">
+    <h3>Get Department Info</h3>
+    <label>Department Address:</label>
+    <input type="text" id="infoAddress">
+    <button onclick="getInfo()">Get Info</button>
+    <pre id="infoOutput"></pre>
+  </div>
+
+  <script>
+    let web3;
+    let contract;
+
+    const contractAddress = 'YOUR_DEPLOYED_CONTRACT_ADDRESS';
+    const contractABI = [
+      // Paste your compiled contract ABI here
+    ];
+
+    window.addEventListener('load', async () => {
+      if (window.ethereum) {
+        web3 = new Web3(window.ethereum);
+        await window.ethereum.enable();
+        contract = new web3.eth.Contract(contractABI, contractAddress);
+      } else {
+        alert('Please install MetaMask to use this app.');
+      }
+    });
+
+    async function registerDepartment() {
+      const address = document.getElementById('regAddress').value;
+      const name = document.getElementById('regName').value;
+      const funds = document.getElementById('regFunds').value;
+      const accounts = await web3.eth.getAccounts();
+      await contract.methods.registerDepartment(address, name, funds).send({ from: accounts[0] });
+      alert('Department Registered');
+    }
+
+    async function allocateFunds() {
+      const address = document.getElementById('allocAddress').value;
+      const amount = document.getElementById('allocAmount').value;
+      const accounts = await web3.eth.getAccounts();
+      await contract.methods.allocateMoreFunds(address, amount).send({ from: accounts[0] });
+      alert('Funds Allocated');
+    }
+
+    async function spendFunds() {
+      const amount = document.getElementById('spendAmount').value;
+      const purpose = document.getElementById('spendPurpose').value;
+      const accounts = await web3.eth.getAccounts();
+      await contract.methods.spendFunds(amount, purpose).send({ from: accounts[0] });
+      alert('Funds Spent');
+    }
+
+    async function getInfo() {
+      const address = document.getElementById('infoAddress').value;
+      const data = await contract.methods.getDepartmentInfo(address).call();
+      document.getElementById('infoOutput').textContent = `Name: ${data[0]}\nAllocated: ${data[1]}\nSpent: ${data[2]}`;
+    }
+  </script>
+</body>
+</html>
